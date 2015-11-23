@@ -17,4 +17,5 @@ object Command {
   case class AuctionFinished(title:String)
   case class Win(title:String, cost:Int)
   case class NewBid(auctionPath:ActorPath, bid:Int)
+  case class Notify(title:String, buyer:ActorPath, currentPrice:Int)
 }

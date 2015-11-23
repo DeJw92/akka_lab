@@ -25,6 +25,11 @@ class Auction(title:String) extends PersistentActor{
 
   var involvedBuyers:Set[ActorPath] = Set()
 
+  def sendInformationToNotifier() = {
+    val notifier = context.actorSelection("/user/notifier")
+    notifier ! Notify(title, bestBuyer, bestBid)
+  }
+
   def updateState(event:NewBestBid): Unit = {
     bestBid = event.amount
     bestBuyer = event.buyerPath
@@ -36,6 +41,7 @@ class Auction(title:String) extends PersistentActor{
       }
     }
     context become activated
+    sendInformationToNotifier()
     println("Auction " + title + " has new best bid " + bestBid)
   }
 
