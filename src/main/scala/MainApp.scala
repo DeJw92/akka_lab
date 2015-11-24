@@ -23,7 +23,7 @@ object MainApp extends App{
 
   val seller = auctionSystem.actorOf(Props[Seller],"seller")
 
-//  seller ! CreateAuctions(List[(String,Int)](("BMW M5", 30), ("Lenovo E430",600)))
+  seller ! CreateAuctions(List[(String,Int)](("BMW M5", 30), ("Lenovo E430",600)))
 
   val GO = readLine()
   val buyer1 = auctionSystem.actorOf(Props(new Buyer(1000,100)),"buyer1")
