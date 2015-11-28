@@ -1,4 +1,4 @@
-import akka.actor.{Actor, Props}
+import akka.actor.{ActorLogging, Actor, Props}
 import akka.event.LoggingReceive
 import akka.routing.{ActorRefRoutee, BroadcastRoutingLogic, RoundRobinRoutingLogic, Router}
 import commands.Command.{FindAuctions, RegisterForSearch}
@@ -6,7 +6,7 @@ import commands.Command.{FindAuctions, RegisterForSearch}
 /**
  * Created by Dawid Pawlak.
  */
-class MasterSearch extends Actor{
+class MasterSearch extends Actor with ActorLogging {
 
   val numberOfRoutes:Int = 3
 
@@ -27,10 +27,12 @@ class MasterSearch extends Actor{
 
   override def receive = LoggingReceive {
     case register:RegisterForSearch => {
+      log.info("MasterSearch received register command with auction " + register.auction)
       registerRouter.route(register, sender())
     }
-    case find:FindAuctions => {
-      searchRouter.route(find, sender())
+    case auction:FindAuctions => {
+      log.info("MasterSearch received find command with auction " + auction.title)
+      searchRouter.route(auction, sender())
     }
   }
 }

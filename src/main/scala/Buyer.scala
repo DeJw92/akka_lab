@@ -1,11 +1,11 @@
-import akka.actor.{Actor, ActorPath}
+import akka.actor.{ActorLogging, Actor, ActorPath}
 import akka.event.LoggingReceive
 import commands.Command._
 
 /**
  * Created by Dawid Pawlak.
  */
-class Buyer(maxAmount:Int, step:Int) extends Actor{
+class Buyer(maxAmount:Int, step:Int) extends Actor with ActorLogging {
    def receive =  LoggingReceive  {
      case CreateBid(title:String) => {
        val masterSearch = context.actorSelection("/user/masterSearch")
@@ -19,10 +19,10 @@ class Buyer(maxAmount:Int, step:Int) extends Actor{
        }
      }
      case Win(title, cost) => {
-       println("Buyer " + self.path.name + " won auction with title " + title)
+       log.info("Buyer " + self.path.name + " won auction with title " + title)
      }
      case NewBid(auctionPath:ActorPath,bid:Int) => {
-       println("Actor " + self.path.name + " has been informed about new bid = " + bid)
+       log.info("Actor " + self.path.name + " has been informed about new bid = " + bid)
        if(bid < maxAmount) {
          val auction = context.actorSelection(auctionPath)
          auction ! Bid(maxAmount, step)

@@ -1,4 +1,4 @@
-import akka.actor.ActorPath
+import akka.actor.{ActorLogging, ActorPath}
 import akka.event.LoggingReceive
 import akka.persistence.{PersistentActor, RecoveryCompleted}
 import commands.Command._
@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 /**
  * Created by Dawid Pawlak.
  */
-class Auction(title:String) extends PersistentActor{
+class Auction(title:String) extends PersistentActor with ActorLogging {
 
   import context._
 
@@ -42,18 +42,19 @@ class Auction(title:String) extends PersistentActor{
     }
     context become activated
     sendInformationToNotifier()
-    println("Auction " + title + " has new best bid " + bestBid)
+    log.info("Auction " + title + " has new best bid " + bestBid)
   }
 
   def ignored: Receive = LoggingReceive {
     case _ => {
-      println("Unfortunately auction with title " + title + " is no longer available")
+      log.info("Unfortunately auction with title \" + title + \" is no longer available")
     }
   }
 
   def sold: Receive = LoggingReceive {
-    case _ => {}
-    println("Auction " + title + " has been sold")
+    case _ => {
+      log.info("Auction " + title + " has been sold")
+    }
   }
 
   def finishAuction(event: FinishedAuction): Unit = {
@@ -80,7 +81,7 @@ class Auction(title:String) extends PersistentActor{
       informSellerAboutSoldAuction
       val buyer = context.actorSelection(bestBuyer)
       buyer ! Win(title, bestBid)
-      println("Auction with " + title + " has expired and someone won")
+      log.info("Auction with " + title + " has expired and someone won")
       persist(finishAuction(Sold)) {
         event => {}
       }
@@ -97,7 +98,7 @@ class Auction(title:String) extends PersistentActor{
 
     case Expire => {
       context become ignored
-      println("Auction with title " + title + " has finished and no one has won")
+      log.info("Auction with title " + title + " has finished and no one has won")
       informSellerAboutSoldAuction
       persist(finishAuction(NotSold)) {
         event => {}
@@ -112,7 +113,6 @@ class Auction(title:String) extends PersistentActor{
   }
 
   def init(event:CreatedEvent): Unit = {
-    println("In init method")
     this.creatorPath = event.creatorPath
     val masterSearch = context.actorSelection("/user/masterSearch")
     masterSearch ! RegisterForSearch(title, self.path)
@@ -124,27 +124,27 @@ class Auction(title:String) extends PersistentActor{
 
   override def receiveRecover = LoggingReceive  {
     case event:CreatedEvent => {
-      println("Recovering event")
+      log.info("Recovering event")
       init(event)
     }
     case event:NewBestBid => {
-      println("Bid recover")
+      log.info("Bid recover")
       updateState(event)
     }
     case RecoveryCompleted => {
       if(duration != -1) {
         val remainingTime = math.max(duration - ((System.currentTimeMillis() - startTime) / 1000),0)
-        println("Starting timer. Auction " + title + " will last for " + remainingTime + " seconds")
+        log.info("Starting timer. Auction " + title + " will last for " + remainingTime + " seconds")
         context.system.scheduler.scheduleOnce(Duration(remainingTime,"seconds"),self,Expire)
       }
-      println("Auctions with title " + title + " has been recovered")
+      log.info("Auctions with title " + title + " has been recovered")
     }
   }
 
   override def receiveCommand = LoggingReceive {
     case StartAuction(x) => persist(CreatedEvent(sender().path, System.currentTimeMillis(), x)){
         event => {
-          println("Scheduler for auction " + title + " has been set to " + event.duration + " seconds ")
+          log.info("Scheduler for auction " + title + " has been set to " + event.duration + " seconds ")
           context.system.scheduler.scheduleOnce(Duration(event.duration,"seconds"),self,Expire)
           init(event)
         }

@@ -12,7 +12,7 @@ class Notifier extends Actor with ActorLogging{
 
   override val supervisorStrategy = OneForOneStrategy(loggingEnabled = false) {
     case exception:NetworkException => {
-      println("Sending notification to remote service has failed. Restarting")
+      log.info("Sending notification to remote service has failed. Restarting")
       Restart
     }
   }
@@ -24,15 +24,15 @@ class Notifier extends Actor with ActorLogging{
 
   override def receive: Receive = {
     case Notify(title, buyerPath, currentPrice) => {
-      println("Received in notify")
+      log.info("Received in notify")
       sendMessage(title, buyerPath, currentPrice)
     }
     case NotifyResult(title, buyerPath, currentPrice, good) => {
       if(!good) {
-        println("Resending message")
+        log.info("Resending message")
         sendMessage(title, buyerPath, currentPrice)
       } else {
-        println("Message was good")
+        log.info("Message was good")
       }
     }
   }
