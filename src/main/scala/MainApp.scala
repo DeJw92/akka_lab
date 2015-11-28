@@ -17,7 +17,7 @@ object MainApp extends App{
 
   val auctionPublisher = auctionPublisherSystem.actorOf(Props[AuctionPublisher],"auctionPublisher")
 
-  val auctionSearch = auctionSystem.actorOf(Props[AuctionSearch],"auctionSearch")
+  val masterSearch = auctionSystem.actorOf(Props[MasterSearch],"masterSearch")
 
   val notifier = auctionSystem.actorOf(Props[Notifier],"notifier")
 
@@ -27,9 +27,9 @@ object MainApp extends App{
 
   val GO = readLine()
   val buyer1 = auctionSystem.actorOf(Props(new Buyer(1000,100)),"buyer1")
-  val buyer2 = auctionSystem.actorOf(Props(new Buyer(1000,100)),"buyer2")
-  val buyer3 = auctionSystem.actorOf(Props(new Buyer(10000,15)),"buyer3")
+//  val buyer2 = auctionSystem.actorOf(Props(new Buyer(1000,100)),"buyer2")
+//  val buyer3 = auctionSystem.actorOf(Props(new Buyer(10000,15)),"buyer3")
   buyer1 ! CreateBid("Lenovo")
-  buyer2 ! CreateBid("Lenovo")
-  buyer3 ! CreateBid("Lenovo")
+//  buyer2 ! CreateBid("Lenovo")
+//  buyer3 ! CreateBid("Lenovo")
 }

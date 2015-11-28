@@ -114,8 +114,8 @@ class Auction(title:String) extends PersistentActor{
   def init(event:CreatedEvent): Unit = {
     println("In init method")
     this.creatorPath = event.creatorPath
-    val auctionSearch = context.actorSelection("/user/auctionSearch")
-    auctionSearch ! RegisterForSearch(title, self.path)
+    val masterSearch = context.actorSelection("/user/masterSearch")
+    masterSearch ! RegisterForSearch(title, self.path)
     this.duration = event.duration
     this.startTime = event.startTime
     context become created
@@ -143,7 +143,6 @@ class Auction(title:String) extends PersistentActor{
 
   override def receiveCommand = LoggingReceive {
     case StartAuction(x) => persist(CreatedEvent(sender().path, System.currentTimeMillis(), x)){
-          println("Here")
         event => {
           println("Scheduler for auction " + title + " has been set to " + event.duration + " seconds ")
           context.system.scheduler.scheduleOnce(Duration(event.duration,"seconds"),self,Expire)

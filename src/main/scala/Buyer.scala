@@ -8,8 +8,8 @@ import commands.Command._
 class Buyer(maxAmount:Int, step:Int) extends Actor{
    def receive =  LoggingReceive  {
      case CreateBid(title:String) => {
-       val auctionSearch = context.actorSelection("/user/auctionSearch")
-       auctionSearch ! FindAuctions(title)
+       val masterSearch = context.actorSelection("/user/masterSearch")
+       masterSearch ! FindAuctions(title)
      }
 
      case SearchResult(title, auctions:List[ActorPath]) => {
