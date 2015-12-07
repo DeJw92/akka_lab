@@ -1,33 +1,33 @@
 import java.util.concurrent.ThreadLocalRandom
 
-import akka.actor.Actor
+import akka.actor.{ActorLogging, Actor}
 import commands.Command.{NotifyResult, Notify}
 import exceptions.Exceptions.NetworkException
 
 /**
  * Created by Dawid Pawlak.
  */
-class NotifierRequest(message:Notify) extends Actor{
+class NotifierRequest(message:Notify) extends Actor with ActorLogging {
 
   override def preStart(): Unit = {
-    println("Pre started called")
+    log.info("Pre started called")
   }
 
   override def preRestart(reason: Throwable, message: Option[Any]) = {
     self ! message.get
-    println("Resend message")
+    log.info("Resend message")
   }
 
   override def receive: Receive = {
     case Notify(title,buyer,currentPrice) => {
-      println("Receive notification. Auction with title " + message.title + " has current price " + message.currentPrice)
+      log.info("Receive notification. Auction with title " + message.title + " has current price " + message.currentPrice)
       val auctionPublisher = context.actorSelection("akka.tcp://AuctionSystem@127.0.0.1:2552/user/auctionPublisher")
 
-      if(ThreadLocalRandom.current().nextDouble() < 0.4) {
-        println("Remote service not available")
+      if(ThreadLocalRandom.current().nextDouble() < 0.4) { // simulate problems with connection
+        log.info("Remote service not available")
         throw new NetworkException
       }
-      println("Now available")
+      log.info("Now available")
       auctionPublisher ! Notify(message.title, message.buyer, message.currentPrice)
       context.stop(self)
       context.parent ! NotifyResult(message.title, message.buyer, message.currentPrice, good = true)
